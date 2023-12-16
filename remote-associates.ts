@@ -11,7 +11,7 @@ function getQuestionPart(phrases: string[]): string[] {
         phrases.filter((item) => item.includes(checkWord)).length ===
           phrases.length &&
         checkWord.length > 1
-      ) {
+      ) { 
         commonWord = checkWord;
         isValid = true;
         if (j + 1 === phrases[0].length) { 
@@ -24,8 +24,5 @@ function getQuestionPart(phrases: string[]): string[] {
     }
   }
 
-  let result:string[] = phrases.map(item=>{
-    return item.replace(commonWord,'').trim()
-  })
-  return result;
+  return phrases.map(item=>item.replace(commonWord,'').trim())
 }

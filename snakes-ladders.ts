@@ -2,56 +2,56 @@ function quickestPath(board: {
   ladders: [number, number][];
   snakes: [number, number][];
 }): number[] {
-  // หาตำแหน่งที่น้อยสุดดของ snake ที่เราจะไม่ไปเหยียบเนื่องจากมากกว่าค่ามากสุดของ ladder แล้ว
-  let maxLadder:number = board.ladders.sort((a, b) => b[1] - a[1])[0][1];
-  let maxSnake:[number,number][] = board.snakes.filter((item) => item[0] >= maxLadder);
-  let notIncludeSnake:number = 100;
-  if (maxSnake.length > 0) {
-    notIncludeSnake = maxSnake[0][0];
-  }
-  /////////////////////////////////////////////////////////////////////////////////
-  let maxDestination:number = 1;
+  let maxDestination: number = 1;
   let arr: { dices: number[]; dest: number }[] = [{ dices: [], dest: 1 }];
-
+  let dice: number = 0;
   while (maxDestination < 100) {
     for (let obj of arr) {
-      let isLadder = board.ladders.filter(
+      //the value that push from isLadder and isSnake will past to next loop
+      if (obj.dices.length > arr[0].dices.length) {
+        continue;
+      }
+      //from preset dest can go which ladder or snake
+      let isLadder: [number, number][] = board.ladders.filter(
         (item) => obj.dest + 6 >= item[0] && obj.dest < item[0]
       );
-      let isSnake = board.snakes.filter(
+      let isSnake: [number, number][] = board.snakes.filter(
         (item) => obj.dest + 6 >= item[0] && obj.dest < item[0]
       );
-
-      // can go to ladder
-      if (isLadder.length > 0) {
-        //can go to snake too
-        if (isSnake.length > 0 && isSnake[0][0] < notIncludeSnake) {
-          let dices:number[] = [...obj.dices, isSnake[0][0] - obj.dest];
-          let dest:number = isSnake[0][1];
-          arr.push({ dices, dest });
+      //go snake
+      for (let snakes = 0; snakes < isSnake.length; snakes++) {
+        arr.push({
+          dices: [...obj.dices, isSnake[snakes][0] - obj.dest],
+          dest: isSnake[snakes][1],
+        });
+      }
+      //go ladder
+      for (let ladders = 0; ladders < isLadder.length; ladders++) {
+        arr.push({
+          dices: [...obj.dices, isLadder[ladders][0] - obj.dest],
+          dest: isLadder[ladders][1],
+        });
+        if (isLadder[ladders][1] > maxDestination) {
+          maxDestination = isLadder[ladders][1];
         }
-        obj.dices.push(isLadder[0][0] - obj.dest);
-        obj.dest = isLadder[0][1];
-      } else if (isSnake.length > 0 && isSnake[0][0] < notIncludeSnake) {
-        // can go to only snake
-        obj.dices.push(isSnake[0][0] - obj.dest);
-        obj.dest = isSnake[0][1];
-      } else {
-        // can't go both ladder and snake
-        obj.dices.push(6);
-        obj.dest += 6;
       }
-      //change max Destination
-      if (isLadder.length > 0 && isLadder[0][1] > maxDestination) {
-        maxDestination = isLadder[0][1];
-      } else if (obj.dest + 6 > maxDestination) {
-        maxDestination += 6;
+      //go without ladder and snake with max value
+      let possibleDices: number[] = [1, 2, 3, 4, 5, 6];
+      let snake: number[] = isSnake.map((item) => item[0] - obj.dest);
+      let ladder: number[] = isLadder.map((item) => item[0] - obj.dest);
+      dice = possibleDices.filter((item) => !snake.includes(item) && !ladder.includes(item)).sort((a, b) => b - a)[0];
+      if (dice) {
+        if (obj.dest + dice > maxDestination) {
+          maxDestination = obj.dest + dice;
+        }
+        obj.dices.push(dice);
+        obj.dest += dice;
       }
-      if (obj.dest >= 100) {
+
+      if (maxDestination >= 100) {
         break;
       }
     }
   }
-  return arr.filter((item) => item.dest >= 100)[0].dices;
+  return arr.filter((item) => item.dest >= 100)[0]?.dices;
 }
-
